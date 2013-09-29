@@ -43,13 +43,12 @@ end
 def readCsv(fileName)
  articleQuantityHash = Hash.new()
  articleSizeHash = Hash.new()
- first = true
+ index = 0
 
  CSV.foreach(fileName) do |row|
   #puts "#{i} times"
-
-   if (first || row[1].nil? || row[1].empty?) then 
-     first = false
+  index += 1
+   if (index == 1 || index == 2 || row[1].nil? || row[1].empty?) then 
      next
    end
    
