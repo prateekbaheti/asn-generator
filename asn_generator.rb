@@ -13,19 +13,19 @@ class Article
   end
 
   def size
-    return @size
+   @size
   end
 
   def colour
-    return @colour
+   @colour
   end
 
   def total
-    return @total
+   @total
   end
 
-  def add_quantity(toAdd)
-    @size = Integer(toAdd) + Integer(@size)
+  def setTotal(newTotal)
+    @total = newTotal
   end
 end
 
@@ -75,7 +75,8 @@ end
 def updateArticleQuantity(articles, row)
  article = articles[row[ARTICLE_NO_INDEX]]
  puts "old size is #{article.total}"
- article.add_quantity(row[TOTAL_INDEX])
+ newTotalQuantity = article.total.to_i + row[TOTAL_INDEX].to_i
+ article.setTotal(newTotalQuantity)
  puts "new size is #{article.total}"
  articles[row[ARTICLE_NO_INDEX]] = article 
 end
