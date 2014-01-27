@@ -9,7 +9,7 @@ class Article
   def initialize(size, colour, totalQuantity)
     @size = size
     @acolour= colour
-    @total = totalQuantity
+    @quantity = totalQuantity
   end
 
   def size
@@ -20,12 +20,12 @@ class Article
    @colour
   end
 
-  def total
-   @total
+  def quantity
+   @quantity
   end
 
-  def setTotal(newTotal)
-    @total = newTotal
+  def setQuantity(newQuantity)
+    @quantity = newQuantity
   end
 end
 
@@ -46,7 +46,6 @@ class AsnGenerator
       if ( index ==1 || index == 2 || csv_row[1].nil? || csv_row[1].empty?) then 
        next
      end
-    puts "index is #{index} and article = #{csv_row[1]} "
      if articles[csv_row[ARTICLE_NO_INDEX]].nil? 
       articles[csv_row[ARTICLE_NO_INDEX]] = Article.new(findSize(csv_row), findColor(csv_row), csv_row[TOTAL_INDEX])
     else 
@@ -55,17 +54,33 @@ class AsnGenerator
  end
 
 finalCsv = ""
+totalQuantity = 0
+totalAmount = 0
+ 
  articles.keys.sort.each do |article_number|
   article = articles[article_number]
-  amount = Integer(article.total) * Integer(@price)
-  finalCsv += "208441,COTTON TROUSERS,2%,READYMADE GARMENT,#{article_number},#{@price},,#{article.size},#{article.total},YES,YES,#{amount} \n"  
+  amount = Integer(article.quantity) * Integer(@price)
+  totalAmount += amount
+  totalQuantity += article.quantity.to_i
+  finalCsv += "208441,COTTON TROUSERS,2%,READYMADE GARMENT,#{article_number},#{@price},,#{article.size},#{article.quantity},YES,YES,#{amount} \n"  
 end
 
 return finalCsv
 end
 
 def findSize(row)
-  return 34
+  if row[2] != "0" then 
+    return "28"
+  elsif row[3] != "0"
+    return "30"
+  elsif row[4] != "0"
+    return "32"
+  elsif row[5] != "0"
+    return "34"
+  elsif row[6] != "0"
+    return "36"
+  else return ""
+  end
 end
 
 def findColor(row)
@@ -74,10 +89,8 @@ end
 
 def updateArticleQuantity(articles, row)
  article = articles[row[ARTICLE_NO_INDEX]]
- puts "old size is #{article.total}"
- newTotalQuantity = article.total.to_i + row[TOTAL_INDEX].to_i
- article.setTotal(newTotalQuantity)
- puts "new size is #{article.total}"
+ newTotalQuantity = article.quantity.to_i + row[TOTAL_INDEX].to_i
+ article.setQuantity(newTotalQuantity)
  articles[row[ARTICLE_NO_INDEX]] = article 
 end
 end
