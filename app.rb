@@ -1,6 +1,6 @@
 require "rubygems"
 require "sinatra"
-require File.join File.dirname(__FILE__), 'asn'
+require File.join File.dirname(__FILE__), 'asn_generator'
 
 get "/" do
   send_file File.join(settings.public_folder, 'asn.html')
@@ -10,9 +10,13 @@ post "/upload" do
   if params[:asn_file]
       filename = params[:asn_file][:filename]
       file = params[:asn_file][:tempfile]
-
-      readCsv(file)
-  else 
-    "No file found oops !!"
+  begin
+    generator = AsnGenerator.new(file, 250)
+    generator.generate_asn_data()
+  rescue Exception => e
+    "Error in processing the csv file. Ensure valid csv file was selected with correct table values. Exception:" + e.message
+  end
+   else 
+    "No file selected !!"
 end
 end
