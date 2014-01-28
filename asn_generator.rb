@@ -3,6 +3,7 @@ require 'csv'
 ARTICLE_NO_INDEX = 1
 TOTAL_INDEX = 7
 CARTON_NO_INDEX = 0
+TAX_PERCENTAGE = 2
 
 class Article
  
@@ -64,8 +65,17 @@ totalAmount = 0
   totalQuantity += article.quantity.to_i
   finalCsv += "208441,COTTON TROUSERS,2%,READYMADE GARMENT,#{article_number},#{@price},,#{article.size},#{article.quantity},YES,YES,#{amount} \n"  
 end
-
+ taxAmount = getTaxAmount(totalAmount) 
+ amountIncludingTax = totalAmount + taxAmount
+ 
+ finalCsv += "\n,,,,,,,,#{totalQuantity},,Tax,#{taxAmount}"
+ finalCsv += "\n,,,,,,,,,,Total,#{amountIncludingTax}"
 return finalCsv
+end
+
+def getTaxAmount(amount)
+  taxAmount = (amount * TAX_PERCENTAGE)/100
+  taxAmount.round
 end
 
 def findSize(row)

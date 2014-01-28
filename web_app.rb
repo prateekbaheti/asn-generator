@@ -11,14 +11,15 @@ post "/final_csv" do
   if params[:asn_file]
       filename = params[:asn_file][:filename]
       file = params[:asn_file][:tempfile]
-      params.keys.each do |k|
-           puts "#{k} - #{params[k]}"
-      end
   begin
     generator = AsnGenerator.new(file, params[:price])
     finalCsv = generator.generate_asn_data()
     finalCsvFile = FileGenerator.generateCsvFile(finalCsv)
-    send_file finalCsvFile
+
+    finalFileName = filename.gsub ".csv", ""
+    finalFileName += "_final.csv"
+    send_file finalCsvFile , :filename => finalFileName
+    redirect '/'
   rescue Exception => e
     "Error in processing the csv file. Ensure valid csv file was selected with correct table values. Exception:" + e.message
   end
