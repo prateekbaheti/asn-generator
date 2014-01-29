@@ -1,8 +1,14 @@
 require 'csv'
 
-ARTICLE_NO_INDEX = 1
-TOTAL_INDEX = 7
-CARTON_NO_INDEX = 0
+$article_no_index
+$index_28
+$index_30 
+$index_32
+$index_34
+$index_36
+$total_index
+$carton_no_index
+
 TAX_PERCENTAGE = 2
 
 class Article
@@ -41,16 +47,26 @@ class AsnGenerator
   def generate_asn_data()
     articles = Hash.new
     index = 0;
+    indicesFound = false;
 
     CSV.foreach(@packing_list_file.path) do |csv_row|
       index += 1
-      if ( index ==1 || index == 2 || csv_row[1].nil? || csv_row[1].empty?) then 
+      if !indicesFound then
+        indicesFound = findIndices csv_row
+        index += 1
+        next
+      end
+      
+      if ( !indicesFound || csv_row[$article_no_index].nil? || csv_row[$article_no_index].empty?) then 
        next
      end
-     if articles[csv_row[ARTICLE_NO_INDEX]].nil? 
-      articles[csv_row[ARTICLE_NO_INDEX]] = Article.new(findSize(csv_row), findColor(csv_row), csv_row[TOTAL_INDEX])
+     
+      if articles[csv_row[$article_no_index]].nil? 
+      articles[csv_row[$article_no_index]] = Article.new(findSize(csv_row), findColor(csv_row), csv_row[$total_index])
     else 
      updateArticleQuantity(articles, csv_row)
+
+     index += 1
    end
  end
 
@@ -65,6 +81,10 @@ totalAmount = 0
   totalQuantity += article.quantity.to_i
   finalCsv += "208441,COTTON TROUSERS,2%,READYMADE GARMENT,#{article_number},#{@price},,#{article.size},#{article.quantity},YES,YES,#{amount} \n"  
 end
+
+ if finalCsv.strip.empty?
+   return ""
+ end
  taxAmount = getTaxAmount(totalAmount) 
  amountIncludingTax = totalAmount + taxAmount
  
@@ -73,21 +93,44 @@ end
 return finalCsv
 end
 
+def findIndices row
+  i=0
+  while i<6 do
+    if (!row[i]) then
+      i += 1
+      next 
+    end
+    if (row[i].downcase.include? "article") && (row[i+1].include? "28") && (row[i+2].include? "30") 
+      $article_no_index = i;
+      $index_28 = i+1
+      $index_30 = i+2
+      $index_32 = i+3
+      $index_34 = i+4
+      $index_36 = i+5
+      $total_index = i+6
+      $carton_no_index = i-1
+      return true
+    end
+    i += 1
+  end
+  false
+end
+
 def getTaxAmount(amount)
   taxAmount = (amount * TAX_PERCENTAGE)/100
   taxAmount.round
 end
 
 def findSize(row)
-  if row[2] != "0" then 
+  if row[$index_28] != "0" then 
     return "28"
-  elsif row[3] != "0"
+  elsif row[$index_30] != "0"
     return "30"
-  elsif row[4] != "0"
+  elsif row[$index_32] != "0"
     return "32"
-  elsif row[5] != "0"
+  elsif row[$index_34] != "0"
     return "34"
-  elsif row[6] != "0"
+  elsif row[$index_36] != "0"
     return "36"
   else return ""
   end
@@ -98,10 +141,10 @@ def findColor(row)
 end
 
 def updateArticleQuantity(articles, row)
- article = articles[row[ARTICLE_NO_INDEX]]
- newTotalQuantity = article.quantity.to_i + row[TOTAL_INDEX].to_i
+ article = articles[row[$article_no_index]]
+ newTotalQuantity = article.quantity.to_i + row[$total_index].to_i
  article.setQuantity(newTotalQuantity)
- articles[row[ARTICLE_NO_INDEX]] = article 
+ articles[row[$article_no_index]] = article 
 end
 end
 
