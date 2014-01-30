@@ -96,7 +96,7 @@ end
 def findIndices row
   i=0
   while i<6 do
-    if (!row[i]) then
+    if (!(row.nil? && row[i].nil? && row[i+1].nil? && row[i+2]).nil?) then
       i += 1
       next 
     end
