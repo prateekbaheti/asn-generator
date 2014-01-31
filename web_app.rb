@@ -14,6 +14,9 @@ post "/final_csv" do
   begin
     generator = AsnGenerator.new(file, params[:price])
     finalCsv = generator.generate_asn_data()
+    if finalCsv.strip.empty?
+      return "Invalid CSV could not find any Data"
+    end
     finalCsvFile = FileGenerator.generateCsvFile(finalCsv)
 
     finalFileName = filename.gsub ".csv", ""

@@ -94,13 +94,18 @@ return finalCsv
 end
 
 def findIndices row
+  if (row.nil?)
+    return false
+  end
+ 
   i=0
   while i<6 do
-    if (!(row.nil? && row[i].nil? && row[i+1].nil? && row[i+2]).nil?) then
+    if ((row[i].nil? || row[i+1].nil? || row[i+2].nil?)) then
       i += 1
       next 
     end
     if (row[i].downcase.include? "article") && (row[i+1].include? "28") && (row[i+2].include? "30") 
+      puts "Article no column number found is #{i}"
       $article_no_index = i;
       $index_28 = i+1
       $index_30 = i+2
