@@ -1,18 +1,38 @@
 require "rubygems"
+require "spreadsheet"
 require "sinatra"
+require File.join File.dirname(__FILE__), 'csv_generator'
 require File.join File.dirname(__FILE__), 'asn_generator'
 require File.join File.dirname(__FILE__), 'file_generator'
+
+template = Spreadsheet.open 'template/asn_template.xls'
 
 get "/" do
   send_file File.join(settings.public_folder, 'asn.html')
 end
 
+post "/po_details" do
+  if params[:asn_file] && params[:price]
+    filename = params[:asn_file][:filename]
+    file = params[:asn_file][:tempfile]
+  begin
+    generator = CsvDataGenerator.new(file, params[:price])
+    csvData = generator.generate_asn_data
+    details_xls = AsnGenerator::generate_details_xls(template, csvData, params)
+    send_file details_xls, :filename => filename_final.xls
+  rescue Exception => e
+    "Error genertaing details file, Exception:" + e.message
+  end
+  else
+    "No file selected or Price not entered!!"
+end
+
 post "/final_csv" do
-  if params[:asn_file]
+  if params[:asn_file] && params[:price]
       filename = params[:asn_file][:filename]
       file = params[:asn_file][:tempfile]
   begin
-    generator = AsnGenerator.new(file, params[:price])
+    generator = CsvDataGenerator.new(file, params[:price])
     finalCsv = generator.generate_asn_data()
     if finalCsv.strip.empty?
       return "Invalid CSV could not find any Data"
@@ -27,6 +47,6 @@ post "/final_csv" do
     "Error in processing the csv file. Ensure valid csv file was selected with correct table values. Exception:" + e.message
   end
    else 
-    "No file selected !!"
+    "No file selected or Price not entered!!"
 end
 end

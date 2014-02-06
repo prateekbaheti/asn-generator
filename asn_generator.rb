@@ -37,7 +37,7 @@ class Article
 end
 
 
-class AsnGenerator
+class CsvDataGenerator
 
   def initialize(packing_list, price)
     @packing_list_file = packing_list
