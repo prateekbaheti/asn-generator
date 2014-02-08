@@ -17,3 +17,4 @@ module AsnGenerator
      sheet[14,3] = params[:arrival_date] || ''
   end
 end
+
