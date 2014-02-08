@@ -48,6 +48,22 @@ post "/po_details" do
     "No file selected or Price not entered!!"
 end
 
+post "/po_details" do
+  if params[:asn_file] && params[:price]
+    filename = params[:asn_file][:filename]
+    file = params[:asn_file][:tempfile]
+  begin
+    generator = CsvDataGenerator.new(file, params[:price])
+    csvData = generator.generate_asn_data
+    details_xls = AsnGenerator::generate_details_xls(template, csvData, params)
+    send_file details_xls, :filename => filename_final.xls
+  rescue Exception => e
+    "Error genertaing details file, Exception:" + e.message
+  end
+  else
+    "No file selected or Price not entered!!"
+end
+
 post "/final_csv" do
   if params[:asn_file] && params[:price]
       filename = params[:asn_file][:filename]
