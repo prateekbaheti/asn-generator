@@ -62,48 +62,56 @@ class CsvDataGenerator
         next
       end
       
-      if ( !indices_found || csv_row[$article_no_index].nil? || csv_row[$article_no_index].empty?) then 
+      current_article_no = csv_row[$article_no_index] 
+     
+      if ( !indices_found || current_article_no.nil? || current_article_no.empty?) then 
        next
      end
      
-      if articles[csv_row[$article_no_index]].nil? 
-      articles[csv_row[$article_no_index]] = Article.new(find_size(csv_row), find_color(csv_row), csv_row[$total_index], csv_row[$carton_no_index])
+      if articles[current_article_no].nil? 
+      articles[current_article_no] = Article.new(find_size(csv_row), find_color(csv_row), csv_row[$total_index], csv_row[$carton_no_index])
     else 
-     update_article_quantity(articles, csv_row)
+     update_article_quantity(articles[current_article_no], csv_row)
 
      index += 1
    end
  end
 
-final_csv = ""
-total_quantity = 0
-total_amount = 0
+ final_csv_rows = Array.new
+ total_quantity = 0
+ total_amount = 0
  
  articles.keys.sort.each do |article_number|
   article = articles[article_number]
   amount = Integer(article.quantity) * Integer(price)
+  amount += tax_amount amount
   total_amount += amount
   total_quantity += article.quantity.to_i
-  final_csv += ",COTTON TROUSERS,#{article_number},,,#{article.quantity},#{article.quantity},,#{price},#{tax_amount amount},#{amount},#{article.carton_no}"  
-end
-
- if final_csv.strip.empty?
-   return ""
+  final_csv_rows.push ["", "112010001  ML_T_CASUAL_TROUSER", article_number, pack_size, "", article.quantity, article.quantity, po_delivery_date, price, tax_amount, amount ,article.carton_no]  
  end
- tax_amount = tax_amount(total_amount) 
- amount_including_tax = total_amount + tax_amount
- 
- @params[:total_quantity] = total_quantity 
- @params[:total_value] = amount_including_tax
 
- final_csv += "\n,,,,,,,,#{total_quantity},,Tax,#{tax_amount}"
- final_csv += "\n,,,,,,,,,,Total,#{amount_including_tax}"
+ @params[:total_quantity] = total_quantity 
+ @params[:total_value] = total_amount 
+ 
+ final_row = Array.new 12, ""
+ final_row[6] = total_quantity
+ final_row[10] = total_amount
+
+ final_csv_rows.push final_row
 return final_csv
 end
 
- def price
-    return params['price'] || 0
-  end
+def price
+    return params[:price] || 0
+end
+
+def pack_size
+  params[:pack_size] || ""
+end
+
+def po_delivery_date
+  params[:po_delivery_date] || ""
+end
 
 def find_indices row
   if (row.nil?)
@@ -157,11 +165,9 @@ def find_color(row)
   return "black "
 end
 
-def update_article_quantity(articles, row)
- article = articles[row[$article_no_index]]
+def update_article_quantity(article, row)
  new_total_quantity = article.quantity.to_i + row[$total_index].to_i
  article.set_quantity(new_total_quantity)
- articles[row[$article_no_index]] = article 
 end
 end
 

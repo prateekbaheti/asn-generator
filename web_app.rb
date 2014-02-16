@@ -21,8 +21,8 @@ post "/po_details" do
   #begin
     puts "params are #{params}"
     generator = CsvDataGenerator.new(file, params)
-    csvData = generator.generate_asn_data
-    details_xls = AsnGenerator::generate_details_xls(template, csvData, params)
+    csv_rows = generator.generate_asn_data
+    details_xls = AsnGenerator::generate_details_xls(template, csv_rows, params)
     send_file details_xls , :filename => "filename_final.xls"
   #rescue Exception => e
   #  "Error genertaing details file, Exception:" + e.message
