@@ -13,10 +13,11 @@ TAX_PERCENTAGE = 2
 
 class Article
  
-  def initialize(size, colour, totalQuantity)
+  def initialize(size, colour, total_quantity, carton_no)
     @size = size
-    @acolour= colour
-    @quantity = totalQuantity
+    @colour= colour
+    @quantity = total_quantity
+    @carton_no = carton_no
   end
 
   def size
@@ -31,8 +32,12 @@ class Article
    @quantity
   end
 
-  def setQuantity(newQuantity)
-    @quantity = newQuantity
+  def set_quantity(new_quantity)
+    @quantity = new_quantity
+  end
+
+  def carton_no()
+    @carton_no
   end
 end
 
@@ -41,63 +46,66 @@ class CsvDataGenerator
 
   def initialize(packing_list, params)
     @packing_list_file = packing_list
-    @price = params['price'] || 0
     @params = params
   end
 
   def generate_asn_data()
     articles = Hash.new
     index = 0;
-    indicesFound = false;
+    indices_found = false;
 
     CSV.foreach(@packing_list_file.path) do |csv_row|
       index += 1
-      if !indicesFound then
-        indicesFound = findIndices csv_row
+      if !indices_found then
+        indices_found = find_indices csv_row
         index += 1
         next
       end
       
-      if ( !indicesFound || csv_row[$article_no_index].nil? || csv_row[$article_no_index].empty?) then 
+      if ( !indices_found || csv_row[$article_no_index].nil? || csv_row[$article_no_index].empty?) then 
        next
      end
      
       if articles[csv_row[$article_no_index]].nil? 
-      articles[csv_row[$article_no_index]] = Article.new(findSize(csv_row), findColor(csv_row), csv_row[$total_index])
+      articles[csv_row[$article_no_index]] = Article.new(find_size(csv_row), find_color(csv_row), csv_row[$total_index], csv_row[$carton_no_index])
     else 
-     updateArticleQuantity(articles, csv_row)
+     update_article_quantity(articles, csv_row)
 
      index += 1
    end
  end
 
-finalCsv = ""
-totalQuantity = 0
-totalAmount = 0
+final_csv = ""
+total_quantity = 0
+total_amount = 0
  
  articles.keys.sort.each do |article_number|
   article = articles[article_number]
-  amount = Integer(article.quantity) * Integer(@price)
-  totalAmount += amount
-  totalQuantity += article.quantity.to_i
-  finalCsv += "208441,COTTON TROUSERS,2%,READYMADE GARMENT,#{article_number},#{@price},,#{article.size},#{article.quantity},YES,YES,#{amount} \n"  
+  amount = Integer(article.quantity) * Integer(price)
+  total_amount += amount
+  total_quantity += article.quantity.to_i
+  final_csv += ",COTTON TROUSERS,#{article_number},,,#{article.quantity},#{article.quantity},,#{price},#{tax_amount amount},#{amount},#{article.carton_no}"  
 end
 
- if finalCsv.strip.empty?
+ if final_csv.strip.empty?
    return ""
  end
- taxAmount = getTaxAmount(totalAmount) 
- amountIncludingTax = totalAmount + taxAmount
+ tax_amount = tax_amount(total_amount) 
+ amount_including_tax = total_amount + tax_amount
  
- @params[:total_quantity] = totalQuantity 
- @params[:total_value] = amountIncludingTax
+ @params[:total_quantity] = total_quantity 
+ @params[:total_value] = amount_including_tax
 
- finalCsv += "\n,,,,,,,,#{totalQuantity},,Tax,#{taxAmount}"
- finalCsv += "\n,,,,,,,,,,Total,#{amountIncludingTax}"
-return finalCsv
+ final_csv += "\n,,,,,,,,#{total_quantity},,Tax,#{tax_amount}"
+ final_csv += "\n,,,,,,,,,,Total,#{amount_including_tax}"
+return final_csv
 end
 
-def findIndices row
+ def price
+    return params['price'] || 0
+  end
+
+def find_indices row
   if (row.nil?)
     return false
   end
@@ -122,15 +130,15 @@ def findIndices row
     end
     i += 1
   end
-  false
+  return false
 end
 
-def getTaxAmount(amount)
-  taxAmount = (amount * TAX_PERCENTAGE)/100
-  taxAmount.round
+def tax_amount(amount)
+  tax_amount = (amount * TAX_PERCENTAGE)/100
+  tax_amount.round
 end
 
-def findSize(row)
+def find_size(row)
   if row[$index_28] != "0" then 
     return "28"
   elsif row[$index_30] != "0"
@@ -145,14 +153,14 @@ def findSize(row)
   end
 end
 
-def findColor(row)
+def find_color(row)
   return "black "
 end
 
-def updateArticleQuantity(articles, row)
+def update_article_quantity(articles, row)
  article = articles[row[$article_no_index]]
- newTotalQuantity = article.quantity.to_i + row[$total_index].to_i
- article.setQuantity(newTotalQuantity)
+ new_total_quantity = article.quantity.to_i + row[$total_index].to_i
+ article.set_quantity(new_total_quantity)
  articles[row[$article_no_index]] = article 
 end
 end
