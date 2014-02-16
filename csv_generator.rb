@@ -53,64 +53,77 @@ class CsvDataGenerator
     articles = Hash.new
     index = 0;
     indices_found = false;
+    last_carton_no = nil;
 
     CSV.foreach(@packing_list_file.path) do |csv_row|
       index += 1
-      if !indices_found then
+      if !indices_found
         indices_found = find_indices csv_row
         index += 1
         next
       end
-      
+
+      current_carton_no = csv_row[$carton_no_index] 
       current_article_no = csv_row[$article_no_index] 
+      
+      if current_carton_no.nil? || current_carton_no.empty?
+        current_carton_no = last_carton_no
+      end
      
-      if ( !indices_found || current_article_no.nil? || current_article_no.empty?) then 
+      if ( !indices_found || current_article_no.nil? || current_article_no.empty?) 
        next
-     end
+      end
      
-      if articles[current_article_no].nil? 
-      articles[current_article_no] = Article.new(find_size(csv_row), find_color(csv_row), csv_row[$total_index], csv_row[$carton_no_index])
-    else 
-     update_article_quantity(articles[current_article_no], csv_row)
+      if articles[current_article_no].nil?
+        articles[current_article_no] = Article.new(find_size(csv_row), find_color(csv_row), csv_row[$total_index], current_carton_no)
+      else 
+        update_article_quantity(articles[current_article_no], csv_row)
+      end
 
      index += 1
+     last_carton_no = current_carton_no
    end
- end
 
- final_csv_rows = Array.new
- total_quantity = 0
- total_amount = 0
+   final_csv_rows = Array.new
+   total_quantity = 0
+   total_amount = 0
  
- articles.keys.sort.each do |article_number|
-  article = articles[article_number]
-  amount = Integer(article.quantity) * Integer(price)
-  amount += tax_amount amount
-  total_amount += amount
-  total_quantity += article.quantity.to_i
-  final_csv_rows.push ["", "112010001  ML_T_CASUAL_TROUSER", article_number, pack_size, "", article.quantity, article.quantity, po_delivery_date, price, tax_amount, amount ,article.carton_no]  
- end
+   articles.keys.sort.each do |article_number|
+    article = articles[article_number]
+    amount = Integer(article.quantity) * Integer(price)
+    total_amount += amount
+    total_quantity += article.quantity.to_i
+    final_csv_rows.push ["", "", "112010001  ML_T_CASUAL_TROUSER", article_number, pack_size, "", article.quantity, article.quantity, po_delivery_date, price, tax_rate, amount ,article.carton_no]  
+   end
 
- @params[:total_quantity] = total_quantity 
- @params[:total_value] = total_amount 
+   tax = tax_amount total_amount
+   total_amount += tax
+
+   @params[:total_quantity] = total_quantity 
+   @params[:total_value] = total_amount 
  
- final_row = Array.new 12, ""
- final_row[6] = total_quantity
- final_row[10] = total_amount
+   final_row = Array.new 13, ""
+   final_row[7] = total_quantity
+   final_row[11] = total_amount
 
- final_csv_rows.push final_row
-return final_csv
+   final_csv_rows.push final_row
+   return final_csv_rows
 end
 
 def price
-    return params[:price] || 0
+    @params[:price] || 0
 end
 
 def pack_size
-  params[:pack_size] || ""
+  @params[:pack_size] || ""
 end
 
 def po_delivery_date
-  params[:po_delivery_date] || ""
+  @params[:po_delivery_date] || ""
+end
+
+def tax_rate
+  @params[:tax_rate] || 2
 end
 
 def find_indices row
@@ -143,7 +156,7 @@ end
 
 def tax_amount(amount)
   tax_amount = (amount * TAX_PERCENTAGE)/100
-  tax_amount.round
+  tax_amount.round.to_i
 end
 
 def find_size(row)
