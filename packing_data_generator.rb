@@ -1,4 +1,4 @@
-require 'csv'
+require 'spreadsheet'
 
 $article_no_index
 $index_28
@@ -44,20 +44,23 @@ class Article
 end
 
 
-class CsvDataGenerator
+class PackingListDataGenerator
 
   def initialize( params)
     @params = params
-    @packing_list_file = params[:asn_file][:tempfile]
+    @packing_list_file = params[:packing_list_file][:tempfile]
   end
 
-  def generate_asn_data()
+  def generate_packing_data()
     articles = Hash.new
     index = 0;
     indices_found = false;
     last_carton_no = nil;
+    
+    book = Spreadsheet.open @packing_list_file.path
+    workbook = book.worksheet 0
 
-    CSV.foreach(@packing_list_file.path) do |csv_row|
+    workbook.each do |csv_row|
       index += 1
       if !indices_found
         indices_found = find_indices csv_row
@@ -65,8 +68,8 @@ class CsvDataGenerator
         next
       end
 
-      current_carton_no = csv_row[$carton_no_index] 
-      current_article_no = csv_row[$article_no_index] 
+      current_carton_no = csv_row[$carton_no_index].to_s 
+      current_article_no = csv_row[$article_no_index].to_i.to_s 
       
       if current_carton_no.nil? || current_carton_no.empty?
         current_carton_no = last_carton_no
@@ -77,7 +80,7 @@ class CsvDataGenerator
       end
      
       if articles[current_article_no].nil?
-        articles[current_article_no] = Article.new(find_size(csv_row), find_color(csv_row), csv_row[$total_index], current_carton_no)
+        articles[current_article_no] = Article.new(find_size(csv_row), find_color(csv_row), csv_row[$total_index].to_s, current_carton_no)
       else 
         update_article_quantity(articles[current_article_no], csv_row)
       end
@@ -94,6 +97,7 @@ class CsvDataGenerator
     article_no = row[PO_ARTICLE_NO_INDEX]
     article = articles[article_no]
     line_no = row[PO_LINE_NUMBER_INDEX]
+    puts articles
     if (!article.nil?)
       amount = Integer(article.quantity) * Integer(price)
       total_amount += amount
@@ -159,7 +163,7 @@ def find_indices row
       i += 1
       next 
     end
-    if (row[i].downcase.include? "article") && (row[i+1].include? "28") && (row[i+2].include? "30") 
+    if (row[i].to_s.downcase.include? "article") && (row[i+1].to_s.include? "28") && (row[i+2].to_s.include? "30") 
       puts "Article no column number found is #{i}"
       $article_no_index = i;
       $index_28 = i+1
