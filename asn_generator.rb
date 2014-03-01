@@ -11,7 +11,7 @@ module AsnGenerator
   end
   
   def add_fixed_details(sheet, params)
-     sheet[7,3] = params[:po_no] || ''
+     sheet[7,3] = params[:po_number] || ''
      sheet[8,3] = params[:total_quantity] || ''
      sheet[9,3] = params[:total_value] || ''
      sheet[10,3] = params[:quality_check_date] || ''

@@ -10,6 +10,8 @@ $total_index
 $carton_no_index
 
 TAX_PERCENTAGE = 2
+PO_LINE_NUMBER_INDEX=1
+PO_ARTICLE_NO_INDEX=6
 
 class Article
  
@@ -44,9 +46,9 @@ end
 
 class CsvDataGenerator
 
-  def initialize(packing_list, params)
-    @packing_list_file = packing_list
+  def initialize( params)
     @params = params
+    @packing_list_file = params[:asn_file][:tempfile]
   end
 
   def generate_asn_data()
@@ -87,27 +89,47 @@ class CsvDataGenerator
    final_csv_rows = Array.new
    total_quantity = 0
    total_amount = 0
- 
-   articles.keys.sort.each do |article_number|
-    article = articles[article_number]
-    amount = Integer(article.quantity) * Integer(price)
-    total_amount += amount
-    total_quantity += article.quantity.to_i
-    final_csv_rows.push ["", "", "112010001  ML_T_CASUAL_TROUSER", article_number, pack_size, "", article.quantity, article.quantity, po_delivery_date, price, tax_rate, amount ,article.carton_no]  
-   end
+
+  po_data.each do |row|
+    article_no = row[PO_ARTICLE_NO_INDEX]
+    article = articles[article_no]
+    line_no = row[PO_LINE_NUMBER_INDEX]
+    if (!article.nil?)
+      amount = Integer(article.quantity) * Integer(price)
+      total_amount += amount
+      total_quantity += article.quantity.to_i
+      final_csv_rows.push ["", line_no, "112010001  ML_T_CASUAL_TROUSER", article_no, pack_size, "", article.quantity, article.quantity, po_delivery_date, price, tax_rate, amount ,article.carton_no]  
+    end
+  end
+  
+  if (final_csv_rows.size < 1)
+    return
+  end
 
    tax = tax_amount total_amount
    total_amount += tax
 
    @params[:total_quantity] = total_quantity 
    @params[:total_value] = total_amount 
+   
+   empty_row = Array.new 13, ""
+   
+   tax_row = Array.new 13, ""
+   tax_row[7] = total_quantity
+   tax_row[10] = "Tax"
+   tax_row[11] = tax
+
  
    final_row = Array.new 13, ""
-   final_row[7] = total_quantity
+   final_row[10] = "Total"
    final_row[11] = total_amount
 
-   final_csv_rows.push final_row
+   final_csv_rows.push(empty_row, tax_row, final_row)
    return final_csv_rows
+end
+
+def po_data
+  @params[:po_data]
 end
 
 def price
@@ -123,7 +145,7 @@ def po_delivery_date
 end
 
 def tax_rate
-  @params[:tax_rate] || 2
+  @params[:tax_rate] || "2%"
 end
 
 def find_indices row
