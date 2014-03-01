@@ -1,12 +1,18 @@
+require 'spreadsheet'
+
 module AsnGenerator
 
   DATA_START_INDEX = 20
+  
+  $template = Spreadsheet.open 'template/asn_template.xls'
+  puts "Read the template****"
 
-  def generate_details_xls(template, csv_rows, params)
-    sheet = template.worksheet 0
+
+  def generate_details_xls(csv_rows, params)
+    sheet = $template.worksheet 0
     add_fixed_details sheet, params
     add_csv_rows sheet, csv_rows
-    template.write "final.xls"
+    $template.write "final.xls"
     File.open "final.xls"
   end
   
