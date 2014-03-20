@@ -1,4 +1,3 @@
-require "rubygems"
 require "sinatra"
 require File.join File.dirname(__FILE__), 'packing_data_generator'
 require File.join File.dirname(__FILE__), 'asn_generator'
@@ -14,7 +13,7 @@ end
 
 post "/po_details" do
   if params[:packing_list_file] && params[:po_text_file]
-  #begin
+  begin
     puts "params are #{params}"
     PoTextReader::read_po_text(params)
     generator = PackingListDataGenerator.new(params)
@@ -26,9 +25,9 @@ post "/po_details" do
 
     details_xls = AsnGenerator::generate_details_xls(packing_rows, params)
     send_file details_xls , :filename => "details_#{params[:po_number]}"
-  #rescue Exception => e
-  #  "Error genertaing details file, Exception:" + e.message
-  #end
+  rescue Exception => e
+    "Error genertaing details file, Exception:" + e.message
+  end
   else
     "No Packing list file or PO text file selected"
  end
