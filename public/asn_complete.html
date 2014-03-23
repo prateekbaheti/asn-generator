@@ -1,40 +1,79 @@
   <html>
+  <head>
+    <title>ASN generator</title>
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+  </head>
     <body>
-    <h1>Welcome to the asn generator</h1>
-    <form method="post" enctype="multipart/form-data" action="/po_details">
+    
+    <div id="generator">       
+    <div id="header">
+        <h1 id="title">Welcome to the asn generator</h1>
+    </div>
+    
+    
+    <form id="form" method="post" enctype="multipart/form-data" action="/po_details">
 
-     <h3>Enter the price per piece:<h3> 
-     <input id="price" type="number" name="price" value="325"> <br />
+     <p class="price">
+        <label for="name">Price per piece*</label>
+        <input id="price" type="number" name="price" value="325" required>
+     </p>
+    
+     <p class="bill_no">
+        <label for="bill_no">Bill / invoice number</label>
+        <input id="bill_no" type="text" name="bill_no" /> 
+     </p> 
 
-     <h3>Enter the bill/invoice number:<h3>
-     <input id="bill_no" type="text" name="bill_no"> <br />
+    <p class="way_bill_no">
+        <label for="way_bill_no">Way bill number</label>
+         <input id="way_bill_no" type="text" name="way_bill_no" />
+     </p> 
+     
+    <p class="pack_size">
+        <label for="pack_size">Size of each pack</label>
+        <input id="pack_size" type="text" name="pack_size" />
+     </p> 
+    
+    <p class="dispatch_date">
+        <label for="dispatch_date">Date of dispatch</label>
+        <input id="dispatch_date" type="date" name="dispatch_date" />
+     </p>
+    
+    <p class="quality_check_date">
+        <label for="quality_check_date">Quality check date</label>
+        <input id="quality_check_date" type="date" name="quality_check_date" />
+     </p>
 
-     <h3>Enter the way bill number:<h3>
-     <input id="way_bill_no" type="text" name="way_bill_no"> <br />
+     <p class="po_delivery_date">
+        <label for="po_delivery_date">PO delivery date</label>
+        <input id="po_delivery_date" type="date" name="po_delivery_date" />
+     </p>
 
-     <h3>Enter the Size of each Pack:<h3>
-     <input id="pack_size" type="text" name="pack_size"> <br />
+      <p class="arrival_date">
+        <label for="arrival_date">Expected date of vehicle arrival</label>
+        <input id="arrival_date" type="date" name="arrival_date" />
+     </p>
 
-     <h3>Enter the Date of dispatch:<h3>
-     <input id="dispatch_date" type="date" name="dispatch_date" <br />
+    <p class="packing_list_file">
+        <label for="packing_list_file">The packing list Excel file*</label>
+        <input id="packing_list_file" type="file" name="packing_list_file" required /> 
+     </p>
+     
+     <p class="po_text_file">
+        <label for="po_text_file">The PO text file (eg. 5900065748.txt)*</label>
+        <input id="po_text_file" type="file" name="po_text_file" required />
+     </p>
 
-     <h3>Enter the Date of quality check:<h3> 
-     <input id="quality_check_date" type="date" name="quality_check_date" <br />
-
-     <h3>Enter the Date of delivery from the PO:<h3>
-     <input id="po_delivery_date" type="date" name="po_delivery_date" <br />
-
-     <h3>Expected date of vehicle arrival:<h3>
-     <input id="arrival_date" type="date" name="arrival_date" <br />
-
-     <h3>Select the packing list Excel file:</ h3> <br /> <br />
-     <input id="packing_list_file" type="file" name="packing_list_file"> <br /> 
-
-     <h3>Select the PO text file eg. 5900065748.txt :</ h3> <br /> <br />
-     <input id="po_text_file" type="file" name="po_text_file"> <br /> <br />
-
-     <input type="submit" value="generate final ASN"/> <br />
-
+     
+     
+     <p class="submit">
+     <input id="submit" type="submit" value="Generate ASN"/>
+    </p>
+    <div id="footer">
+        <p>
+            Developed and owned by Prateek Kumar Baheti
+        </p>
+    </div>
     </form>
+</div>
     </body>
   </html>
