@@ -14,7 +14,6 @@ end
 post "/po_details" do
   if params[:packing_list_file] && params[:po_text_file]
   begin
-    puts "params are #{params}"
     PoTextReader::read_po_text(params)
     generator = PackingListDataGenerator.new(params)
     packing_rows = generator.generate_packing_data

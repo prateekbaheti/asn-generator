@@ -5,8 +5,6 @@ module AsnGenerator
   DATA_START_INDEX = 20
   
   $template = Spreadsheet.open 'template/asn_template.xls'
-  puts "Read the template****"
-
 
   def generate_details_xls(csv_rows, params)
     sheet = $template.worksheet 0
