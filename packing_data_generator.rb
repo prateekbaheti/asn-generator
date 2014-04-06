@@ -64,12 +64,13 @@ class PackingListDataGenerator
       index += 1
       if !indices_found
         indices_found = find_indices csv_row
+       puts "total index is #{$total_index}"
         index += 1
         next
       end
 
-      current_carton_no = csv_row[$carton_no_index].to_s 
-      current_article_no = csv_row[$article_no_index].to_i.to_s 
+      current_carton_no = get_csv_row_value(csv_row, $carton_no_index).to_s 
+      current_article_no = get_csv_row_value(csv_row, $article_no_index).to_i.to_s 
       
       if current_carton_no.nil? || current_carton_no.empty?
         current_carton_no = last_carton_no
@@ -80,7 +81,7 @@ class PackingListDataGenerator
       end
      
       if articles[current_article_no].nil?
-        articles[current_article_no] = Article.new(find_size(csv_row), find_color(csv_row), csv_row[$total_index].to_s, current_carton_no)
+        articles[current_article_no] = Article.new(find_size(csv_row), find_color(csv_row), get_csv_row_value(csv_row, $total_index), current_carton_no)
       else 
         update_article_quantity(articles[current_article_no], csv_row)
       end
@@ -132,6 +133,10 @@ class PackingListDataGenerator
    return final_csv_rows
 end
 
+def get_csv_row_value(row, index)
+  (row[index].class.name.downcase.include?("formula")) ? row[index].value : row[index]
+end
+
 def po_data
   @params[:po_data]
 end
@@ -163,6 +168,7 @@ def find_indices row
       i += 1
       next 
     end
+
     if (row[i].to_s.downcase.include? "article") && (row[i+1].to_s.include? "28") && (row[i+2].to_s.include? "30") 
       puts "Article no column number found is #{i}"
       $article_no_index = i;
@@ -205,7 +211,7 @@ def find_color(row)
 end
 
 def update_article_quantity(article, row)
- new_total_quantity = article.quantity.to_i + row[$total_index].to_i
+ new_total_quantity = article.quantity.to_i + get_csv_row_value(row, $total_index).to_i
  article.set_quantity(new_total_quantity)
 end
 end
