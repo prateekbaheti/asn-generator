@@ -53,6 +53,7 @@ class PackingListDataGenerator
 
   def generate_packing_data()
     articles = Hash.new
+    carton_hash = Hash.new
     index = 0;
     indices_found = false;
     last_carton_no = nil;
@@ -64,7 +65,6 @@ class PackingListDataGenerator
       index += 1
       if !indices_found
         indices_found = find_indices csv_row
-       puts "total index is #{$total_index}"
         index += 1
         next
       end
@@ -75,15 +75,23 @@ class PackingListDataGenerator
       if current_carton_no.nil? || current_carton_no.empty?
         current_carton_no = last_carton_no
       end
-     
+
       if ( !indices_found || current_article_no.nil? || current_article_no.empty?) 
        next
       end
-     
+
       if articles[current_article_no].nil?
         articles[current_article_no] = Article.new(find_size(csv_row), find_color(csv_row), get_csv_row_value(csv_row, $total_index), current_carton_no)
       else 
         update_article_quantity(articles[current_article_no], csv_row)
+      end
+     
+      if !csv_row[$total_index].nil?
+       if carton_hash[current_carton_no].nil?     
+        carton_hash[current_carton_no] = Integer(get_csv_row_value(csv_row, $total_index))
+       else 
+         carton_hash[current_carton_no] += Integer(get_csv_row_value(csv_row, $total_index))
+       end
       end
 
      index += 1
@@ -98,12 +106,11 @@ class PackingListDataGenerator
     article_no = row[PO_ARTICLE_NO_INDEX]
     article = articles[article_no]
     line_no = row[PO_LINE_NUMBER_INDEX]
-    puts articles
     if (!article.nil?)
       amount = Integer(article.quantity) * Integer(price)
       total_amount += amount
       total_quantity += article.quantity.to_i
-      final_csv_rows.push ["", line_no, "112010001  ML_T_CASUAL_TROUSER", article_no, pack_size, "", article.quantity, article.quantity, po_delivery_date, price, tax_rate, amount ,article.carton_no]  
+      final_csv_rows.push ["", line_no, "112010001  ML_T_CASUAL_TROUSER", article_no, carton_hash[article.carton_no], "", article.quantity, article.quantity, po_delivery_date, price, tax_rate, amount ,article.carton_no]  
     end
   end
   
@@ -143,10 +150,6 @@ end
 
 def price
     @params[:price] || 0
-end
-
-def pack_size
-  @params[:pack_size] || ""
 end
 
 def po_delivery_date
