@@ -1,2 +1,2 @@
 # asn-generator
-Generates ASN
+Generates ASN based on packing list
